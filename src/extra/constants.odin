@@ -1,0 +1,9 @@
+package core
+
+FPS :: 60
+
+WINDOW_HEIGHT :: 768
+WINDOW_WIDTH :: 1024
+
+PIXELS_PER_METER :: 50
+
