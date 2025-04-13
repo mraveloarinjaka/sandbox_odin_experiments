@@ -31,12 +31,11 @@ createWorld :: proc() -> (world: World) {
 }
 
 releaseWorld :: proc(world: World) {
-	// destroying the world release every bodies inside
-	//for body in world.boxes {
-	//   releaseBody(body)
-	//}
+	for body in world.boxes {
+		releaseBody(body)
+	}
 	delete(world.boxes)
-	//b2.DestroyBody(world.ground_id)
+	b2.DestroyBody(world.ground_id)
 	b2.DestroyWorld(world.world_id)
 }
 
@@ -54,7 +53,7 @@ createGround :: proc(world_id: b2.WorldId) -> b2.BodyId {
 
 Box :: struct {
 	body_id:  b2.BodyId,
-	shape_id: b2.ShapeId,
+	shape_ids: [dynamic]b2.ShapeId,
 }
 
 createBody :: proc(world_id: b2.WorldId, pos_x: f32) -> (body: Box) {
@@ -66,14 +65,19 @@ createBody :: proc(world_id: b2.WorldId, pos_x: f32) -> (body: Box) {
 	body_shape := b2.DefaultShapeDef()
 	body_shape.density = 1.0
 	body_shape.friction = 0.3
-	body.shape_id = b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeBox(1, 1))
+
+	append(&body.shape_ids, b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeBox(1.25, 2.25)))
+	append(&body.shape_ids, b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeSquare(1)))
 
 	return body
 }
 
 releaseBody :: proc(body: Box) {
 	log.debugf("releasing body %v", body)
-	//b2.DestroyShape(body.shape_id)
+	for shape_id in body.shape_ids {
+		b2.DestroyShape(shape_id)
+	}
+	delete(body.shape_ids)
 	b2.DestroyBody(body.body_id)
 }
 
