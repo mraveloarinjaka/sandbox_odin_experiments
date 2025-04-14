@@ -10,5 +10,5 @@ main :: proc() {
 	fmt.println("hello odin world!")
 	world := extra.createWorld()
 	defer {extra.releaseWorld(world)}
-	extra.render(world)
+	extra.render(&world)
 }

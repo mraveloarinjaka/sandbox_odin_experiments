@@ -40,19 +40,23 @@ releaseWorld :: proc(world: World) {
 }
 
 GROUND_HALF_WIDTH :: 50
-GROUND_HALF_HEIGHT :: 10
+GROUND_HALF_HEIGHT :: 5
 
 createGround :: proc(world_id: b2.WorldId) -> b2.BodyId {
 	ground_def := b2.DefaultBodyDef()
 	ground_def.position = b2.Vec2{0, -GROUND_HALF_HEIGHT}
 	ground_id := b2.CreateBody(world_id, ground_def)
-	_ = b2.CreatePolygonShape(ground_id, b2.DefaultShapeDef(), b2.MakeBox(GROUND_HALF_WIDTH, GROUND_HALF_HEIGHT))
+	_ = b2.CreatePolygonShape(
+		ground_id,
+		b2.DefaultShapeDef(),
+		b2.MakeBox(GROUND_HALF_WIDTH, GROUND_HALF_HEIGHT),
+	)
 
 	return ground_id
 }
 
 Box :: struct {
-	body_id:  b2.BodyId,
+	body_id:   b2.BodyId,
 	shape_ids: [dynamic]b2.ShapeId,
 }
 
@@ -66,7 +70,10 @@ createBody :: proc(world_id: b2.WorldId, pos_x: f32) -> (body: Box) {
 	body_shape.density = 1.0
 	body_shape.friction = 0.3
 
-	append(&body.shape_ids, b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeBox(1.25, 2.25)))
+	//append(
+	//   &body.shape_ids,
+	//   b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeBox(1.25, 2.25)),
+	//)
 	append(&body.shape_ids, b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeSquare(1)))
 
 	return body
@@ -85,25 +92,6 @@ tick :: proc(world: World) {
 	b2.World_Step(world.world_id, TIMESTEP, SUBSTEP)
 }
 
-physx :: proc() {
-	world := createWorld()
-	defer {
-		releaseWorld(world)
-	}
-
-	log.infof("starting world %v containing %v bodies", world.world_id, len(world.boxes))
-
-	for i in 1 ..= MAX_STEPS {
-		b2.World_Step(world.world_id, TIMESTEP, SUBSTEP)
-
-		for &body in world.boxes {
-			angle := b2.Rot_GetAngle(b2.Body_GetRotation(body.body_id))
-			log.debugf(
-				"body %v: %v, %v",
-				body.body_id.index1,
-				b2.Body_GetPosition(body.body_id),
-				angle,
-			)
-		}
-	}
+generateMoreBodies :: proc(world: ^World) {
+	append_soa(&world.boxes, createBody(world.world_id, 0))
 }

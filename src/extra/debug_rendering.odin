@@ -8,8 +8,9 @@ import "core:fmt"
 import "core:log"
 import "core:testing"
 
-makeDebugDrawer :: proc() -> b2.DebugDraw {
+makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
 	return b2.DebugDraw {
+		userContext = rawptr(screenOrigin),
 		drawShapes = true,
 		drawMass = true,
 		DrawPolygon = proc "c" (
@@ -32,9 +33,13 @@ makeDebugDrawer :: proc() -> b2.DebugDraw {
 			context = runtime.default_context()
 			fmt.printfln("drawing solid polygon %v", vertices)
 			for idx in 0 ..< vertexCount {
-				start := toSceneCoordinates(b2.TransformPoint(transform, vertices[idx]))
+				start := toSceneCoordinates(
+					b2.TransformPoint(transform, vertices[idx]),
+					cast(^Camera)ctx,
+				)
 				end := toSceneCoordinates(
 					b2.TransformPoint(transform, vertices[(idx + 1) % vertexCount]),
+					cast(^Camera)ctx,
 				)
 				xray.DrawLine(
 					cast(i32)start.x,
