@@ -13,7 +13,7 @@ makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
 		userContext = rawptr(screenOrigin),
 		drawShapes = true,
 		drawMass = true,
-		DrawPolygon = proc "c" (
+		DrawPolygonFcn = proc "c" (
 			vertices: [^]b2.Vec2,
 			vertexCount: i32,
 			color: b2.HexColor,
@@ -22,7 +22,7 @@ makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
 			context = runtime.default_context()
 			fmt.println("drawing polygon")
 		},
-		DrawSolidPolygon = proc "c" (
+		DrawSolidPolygonFcn = proc "c" (
 			transform: b2.Transform,
 			vertices: [^]b2.Vec2,
 			vertexCount: i32,
@@ -50,7 +50,7 @@ makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
 				)
 			}
 		},
-		DrawCircle = proc "c" (center: b2.Vec2, radius: f32, color: b2.HexColor, ctx: rawptr) {
+		DrawCircleFcn = proc "c" (center: b2.Vec2, radius: f32, color: b2.HexColor, ctx: rawptr) {
 			context = runtime.default_context()
 			fmt.println("drawing circle")
 			converted_center := toSceneCoordinates(center)
@@ -62,7 +62,7 @@ makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
 				hex_2_rgb(color),
 			)
 		},
-		DrawSolidCircle = proc "c" (
+		DrawSolidCircleFcn = proc "c" (
 			transform: b2.Transform,
 			radius: f32,
 			color: b2.HexColor,
@@ -80,17 +80,16 @@ makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
 				hex_2_rgb(color),
 			)
 		},
-		DrawCapsule = proc "c" (p1, p2: b2.Vec2, radius: f32, color: b2.HexColor, ctx: rawptr) {},
-		DrawSolidCapsule = proc "c" (
+		DrawSolidCapsuleFcn = proc "c" (
 			p1, p2: b2.Vec2,
 			radius: f32,
 			color: b2.HexColor,
 			ctx: rawptr,
 		) {},
-		DrawSegment = proc "c" (p1, p2: b2.Vec2, color: b2.HexColor, ctx: rawptr) {},
-		DrawTransform = proc "c" (transform: b2.Transform, ctx: rawptr) {},
-		DrawPoint = proc "c" (p: b2.Vec2, size: f32, color: b2.HexColor, ctx: rawptr) {},
-		DrawString = proc "c" (p: b2.Vec2, s: cstring, ctx: rawptr) {
+		DrawSegmentFcn = proc "c" (p1, p2: b2.Vec2, color: b2.HexColor, ctx: rawptr) {},
+		DrawTransformFcn = proc "c" (transform: b2.Transform, ctx: rawptr) {},
+		DrawPointFcn = proc "c" (p: b2.Vec2, size: f32, color: b2.HexColor, ctx: rawptr) {},
+		DrawStringFcn = proc "c" (p: b2.Vec2, s: cstring, color: b2.HexColor, ctx: rawptr) {
 			context = runtime.default_context()
 			log.debugf("drawing string %v", s)
 		},

@@ -68,7 +68,10 @@ createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2) -> (body: Box) {
 
 	body_shape := b2.DefaultShapeDef()
 	body_shape.density = 1.0
-	body_shape.friction = 0.3
+
+	body_surface := b2.DefaultSurfaceMaterial()
+	body_surface.friction = 0.3
+	body_shape.material = body_surface
 
 	//append(
 	//   &body.shape_ids,
@@ -82,7 +85,7 @@ createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2) -> (body: Box) {
 releaseBody :: proc(body: Box) {
 	log.debugf("releasing body %v", body)
 	for shape_id in body.shape_ids {
-		b2.DestroyShape(shape_id)
+		b2.DestroyShape(shape_id, true)
 	}
 	delete(body.shape_ids)
 	b2.DestroyBody(body.body_id)
