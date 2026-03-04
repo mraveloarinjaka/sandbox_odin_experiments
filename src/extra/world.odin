@@ -24,7 +24,7 @@ createWorld :: proc() -> (world: World) {
 	world.ground_id = createGround(world.world_id)
 
 	for body_idx in 0 ..< NB_BODIES {
-		append_soa(&world.boxes, createBody(world.world_id, cast(f32)body_idx))
+		append_soa(&world.boxes, createBody(world.world_id, b2.Vec2{0, 10}))
 	}
 
 	return world
@@ -60,10 +60,10 @@ Box :: struct {
 	shape_ids: [dynamic]b2.ShapeId,
 }
 
-createBody :: proc(world_id: b2.WorldId, pos_x: f32) -> (body: Box) {
+createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2) -> (body: Box) {
 	body_def := b2.DefaultBodyDef()
 	body_def.type = b2.BodyType.dynamicBody
-	body_def.position = b2.Vec2{pos_x, 10}
+	body_def.position = b2.Vec2{pos.x, pos.y}
 	body.body_id = b2.CreateBody(world_id, body_def)
 
 	body_shape := b2.DefaultShapeDef()
@@ -93,5 +93,5 @@ tick :: proc(world: World) {
 }
 
 generateMoreBodies :: proc(world: ^World) {
-	append_soa(&world.boxes, createBody(world.world_id, 0))
+	append_soa(&world.boxes, createBody(world.world_id, b2.Vec2{0, 10}))
 }
