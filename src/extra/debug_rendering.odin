@@ -3,14 +3,13 @@ package core
 import b2 "vendor:box2d"
 import xray "vendor:raylib"
 
-import "base:runtime"
 import "core:fmt"
 import "core:log"
 import "core:testing"
 
-makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
+makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 	return b2.DebugDraw {
-		userContext = rawptr(screenOrigin),
+		userContext = rawptr(renderData),
 		drawShapes = true,
 		drawMass = true,
 		DrawPolygonFcn = proc "c" (
@@ -19,7 +18,8 @@ makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
 			color: b2.HexColor,
 			ctx: rawptr,
 		) {
-			context = runtime.default_context()
+			data := cast(^DebugRenderData)(ctx)
+			context = data.ctx
 			fmt.println("drawing polygon")
 		},
 		DrawSolidPolygonFcn = proc "c" (
@@ -30,16 +30,17 @@ makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
 			color: b2.HexColor,
 			ctx: rawptr,
 		) {
-			context = runtime.default_context()
+			data := cast(^DebugRenderData)(ctx)
+			context = data.ctx
 			fmt.printfln("drawing solid polygon %v", vertices)
 			for idx in 0 ..< vertexCount {
 				start := toSceneCoordinates(
 					b2.TransformPoint(transform, vertices[idx]),
-					cast(^Camera)ctx,
+					data.camera,
 				)
 				end := toSceneCoordinates(
 					b2.TransformPoint(transform, vertices[(idx + 1) % vertexCount]),
-					cast(^Camera)ctx,
+					data.camera,
 				)
 				xray.DrawLine(
 					cast(i32)start.x,
@@ -51,9 +52,10 @@ makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
 			}
 		},
 		DrawCircleFcn = proc "c" (center: b2.Vec2, radius: f32, color: b2.HexColor, ctx: rawptr) {
-			context = runtime.default_context()
+			data := cast(^DebugRenderData)(ctx)
+			context = data.ctx
 			fmt.println("drawing circle")
-			converted_center := toSceneCoordinates(center)
+			converted_center := toSceneCoordinates(center, data.camera)
 			converted_radius := radius * PIXELS_PER_METER
 			xray.DrawCircle(
 				cast(i32)converted_center.x,
@@ -68,10 +70,11 @@ makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
 			color: b2.HexColor,
 			ctx: rawptr,
 		) {
-			context = runtime.default_context()
+			data := cast(^DebugRenderData)(ctx)
+			context = data.ctx
 			log.debug("drawing solid circle")
 			center := transform.p
-			converted_center := toSceneCoordinates(center)
+			converted_center := toSceneCoordinates(center, data.camera)
 			converted_radius := radius * PIXELS_PER_METER
 			xray.DrawCircle(
 				cast(i32)converted_center.x,
@@ -85,12 +88,17 @@ makeDebugDrawer :: proc(screenOrigin: ^Camera) -> b2.DebugDraw {
 			radius: f32,
 			color: b2.HexColor,
 			ctx: rawptr,
-		) {},
+		) {
+			data := cast(^DebugRenderData)(ctx)
+			context = data.ctx
+			log.debugf("drawing capsule with radius %v", radius)
+		},
 		DrawSegmentFcn = proc "c" (p1, p2: b2.Vec2, color: b2.HexColor, ctx: rawptr) {},
 		DrawTransformFcn = proc "c" (transform: b2.Transform, ctx: rawptr) {},
 		DrawPointFcn = proc "c" (p: b2.Vec2, size: f32, color: b2.HexColor, ctx: rawptr) {},
 		DrawStringFcn = proc "c" (p: b2.Vec2, s: cstring, color: b2.HexColor, ctx: rawptr) {
-			context = runtime.default_context()
+			data := cast(^DebugRenderData)(ctx)
+			context = data.ctx
 			log.debugf("drawing string %v", s)
 		},
 	}}

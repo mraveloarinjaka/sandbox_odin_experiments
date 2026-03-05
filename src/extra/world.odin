@@ -73,11 +73,16 @@ createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2) -> (body: Box) {
 	body_surface.friction = 0.3
 	body_shape.material = body_surface
 
-	//append(
-	//   &body.shape_ids,
-	//   b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeBox(1.25, 2.25)),
-	//)
-	append(&body.shape_ids, b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeSquare(1)))
+	append(&body.shape_ids, b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeSquare(.75)))
+	append(&body.shape_ids, b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeSquare(1.25)))
+	append(
+		&body.shape_ids,
+		b2.CreateCapsuleShape(
+			body.body_id,
+			body_shape,
+			b2.Capsule{{0, 0}, {1, 0}, 1},
+		),
+	)
 
 	return body
 }
