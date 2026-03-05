@@ -22,21 +22,9 @@ DebugRenderData :: struct {
 	ctx:    runtime.Context,
 }
 
-toSceneCoordinates :: proc "contextless" (
-	coord: b2.Vec2,
-	offset: Camera,
-) -> (
-	result: xray.Vector2,
-) {
-	offset_x := offset.offset_x
-	target_x := offset.target_x
-	result.x = ((coord.x - target_x) * PIXELS_PER_METER) + cast(f32)offset_x
-
-	offset_y := offset.offset_y
-	target_y := offset.target_y
-	result.y = (-(coord.y - target_y) * PIXELS_PER_METER) + cast(f32)offset_y
-	//result.x = coord.x
-	//result.y = -coord.y
+toSceneCoordinates :: proc "contextless" (coord: b2.Vec2) -> (result: xray.Vector2) {
+	result.x = coord.x
+	result.y = -coord.y
 	return
 }
 
@@ -48,12 +36,10 @@ render :: proc(world: ^World) {
 
 	camera := xray.Camera2D{}
 	camera.offset = {WINDOW_WIDTH / 2, 3 * WINDOW_HEIGHT / 4}
+	camera.target = {0, 0}
 	camera.zoom = PIXELS_PER_METER
 
 	debugRenderData := DebugRenderData{}
-	customCamera := &debugRenderData.camera
-	customCamera.offset_x = SCREEN_SPACE_ORIGIN_X
-	customCamera.offset_y = SCREEN_SPACE_ORIGIN_Y
 
 	xray.SetTargetFPS(FPS)
 
@@ -63,12 +49,16 @@ render :: proc(world: ^World) {
 			generateMoreBodies(world)
 		}
 		if xray.IsKeyDown(xray.KeyboardKey.K) {
-			customCamera.target_y += .5
 			camera.target.y -= .5
 		}
 		if xray.IsKeyDown(xray.KeyboardKey.J) {
-			customCamera.target_y -= .5
 			camera.target.y += .5
+		}
+		if xray.IsKeyDown(xray.KeyboardKey.L) {
+			camera.target.x += .5
+		}
+		if xray.IsKeyDown(xray.KeyboardKey.H) {
+			camera.target.x -= .5
 		}
 		tick(world^)
 		xray.BeginDrawing()
@@ -77,12 +67,20 @@ render :: proc(world: ^World) {
 		xray.ClearBackground(xray.BLANK)
 
 		{
-			//xray.BeginMode2D(camera)
-			//defer {xray.EndMode2D()}
+			xray.BeginMode2D(camera)
+			defer {xray.EndMode2D()}
 			debugRenderData.ctx = context
 			debug := makeDebugDrawer(&debugRenderData)
 			b2.World_Draw(world.world_id, &debug)
 			xray.DrawCircle(0, 0, .5, xray.WHITE)
+			xray.DrawTextEx(
+				xray.GetFontDefault(),
+				"Origin",
+				{0, 0.5},
+				1,
+				1,
+				xray.RAYWHITE,
+			)
 		}
 		drawControls(camera)
 	}
@@ -91,16 +89,5 @@ render :: proc(world: ^World) {
 drawControls :: proc(camera: xray.Camera2D) {
 	xray.DrawText("Controls:", 20, 20, 20, xray.PURPLE)
 	xray.DrawText("- SPACE to generate bodies", 40, 40, 20, xray.LIGHTGRAY)
-	origin := toSceneCoordinates(
-		{0, 0},
-		{
-			offset_x = SCREEN_SPACE_ORIGIN_X,
-			offset_y = SCREEN_SPACE_ORIGIN_Y,
-			target_x = 0,
-			target_y = 0,
-		},
-	)
-	//origin := xray.GetWorldToScreen2D(xray.Vector2{0, 0}, camera)
-	xray.DrawText("Origin", cast(i32)origin.x, cast(i32)origin.y, 20, xray.RAYWHITE)
-	xray.DrawCircle(SCREEN_SPACE_ORIGIN_X, SCREEN_SPACE_ORIGIN_Y, 5, xray.RAYWHITE)
+	xray.DrawFPS(SCREEN_SPACE_ORIGIN_X, SCREEN_SPACE_ORIGIN_Y)
 }
