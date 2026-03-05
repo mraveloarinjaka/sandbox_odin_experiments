@@ -130,13 +130,8 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 		},
 	}}
 
-hex_2_rgb :: proc(hex: b2.HexColor) -> (color: xray.Color) {
-	n := transmute(u32)(hex)
-	color.r = cast(u8)((n >> 16) & 0xFF)
-	color.g = cast(u8)((n >> 8) & 0xFF)
-	color.b = cast(u8)(n & 0xFF)
-	color.a = 255
-	return
+hex_2_rgb :: proc(hex: b2.HexColor) -> xray.Color {
+	return xray.GetColor(cast(u32)(hex))
 }
 
 @(test)
