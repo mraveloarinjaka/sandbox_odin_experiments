@@ -20,7 +20,7 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 		) {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
-			fmt.println("drawing polygon")
+			log.debug("drawing polygon")
 		},
 		DrawSolidPolygonFcn = proc "c" (
 			transform: b2.Transform,
@@ -32,7 +32,7 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 		) {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
-			fmt.printfln("drawing solid polygon %v", vertices)
+			log.debugf("drawing solid polygon %v", vertices)
 			for idx in 0 ..< vertexCount {
 				start := b2.TransformPoint(transform, vertices[idx])
 				end := b2.TransformPoint(transform, vertices[(idx + 1) % vertexCount])
@@ -42,7 +42,7 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 		DrawCircleFcn = proc "c" (center: b2.Vec2, radius: f32, color: b2.HexColor, ctx: rawptr) {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
-			fmt.println("drawing circle")
+			log.debug("drawing circle")
 			xray.DrawCircleV(center, radius, hex_2_rgb(color))
 		},
 		DrawSolidCircleFcn = proc "c" (
