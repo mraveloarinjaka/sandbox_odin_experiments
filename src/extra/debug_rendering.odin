@@ -68,8 +68,8 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
 			log.debugf("drawing capsule from %v to %v with radius %v", p1, p2, radius)
-			xray.DrawCircleV(toSceneCoordinates(p1), radius, hex_2_rgb(color))
-			xray.DrawCircleV(toSceneCoordinates(p2), radius, hex_2_rgb(color))
+			xray.DrawCircleLinesV(toSceneCoordinates(p1), radius, hex_2_rgb(color))
+			xray.DrawCircleLinesV(toSceneCoordinates(p2), radius, hex_2_rgb(color))
 		},
 		DrawSegmentFcn = proc "c" (p1, p2: b2.Vec2, color: b2.HexColor, ctx: rawptr) {
 			data := cast(^DebugRenderData)(ctx)
