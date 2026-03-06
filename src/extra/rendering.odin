@@ -2,6 +2,7 @@ package core
 
 import b2 "vendor:box2d"
 import xray "vendor:raylib"
+import "vendor:raylib/rlgl"
 
 import "base:runtime"
 import "core:fmt"
@@ -24,7 +25,7 @@ DebugRenderData :: struct {
 
 toSceneCoordinates :: proc "contextless" (coord: b2.Vec2) -> (result: xray.Vector2) {
 	result.x = coord.x
-	result.y = -coord.y
+	result.y = coord.y
 	return
 }
 
@@ -69,18 +70,17 @@ render :: proc(world: ^World) {
 		{
 			xray.BeginMode2D(camera)
 			defer {xray.EndMode2D()}
-			debugRenderData.ctx = context
-			debug := makeDebugDrawer(&debugRenderData)
-			b2.World_Draw(world.world_id, &debug)
+			{
+				rlgl.PushMatrix()
+				defer {rlgl.PopMatrix()}
+				rlgl.Scalef(1, -1, 1)
+
+				debugRenderData.ctx = context
+				debug := makeDebugDrawer(&debugRenderData)
+				b2.World_Draw(world.world_id, &debug)
+			}
 			xray.DrawCircle(0, 0, .5, xray.WHITE)
-			xray.DrawTextEx(
-				xray.GetFontDefault(),
-				"Origin",
-				{0, 0.5},
-				1,
-				1,
-				xray.RAYWHITE,
-			)
+			xray.DrawTextEx(xray.GetFontDefault(), "Origin", {0, 0.5}, 1, 1, xray.RAYWHITE)
 		}
 		drawControls(camera)
 	}
