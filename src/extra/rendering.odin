@@ -61,6 +61,9 @@ render :: proc(world: ^World) {
 		if xray.IsKeyDown(xray.KeyboardKey.H) {
 			camera.target.x -= .5
 		}
+		if xray.IsKeyDown(xray.KeyboardKey.R) {
+			camera.target = {0, 0}
+		}
 		tick(world^)
 		xray.BeginDrawing()
 		defer xray.EndDrawing()
@@ -89,5 +92,6 @@ render :: proc(world: ^World) {
 drawControls :: proc(camera: xray.Camera2D) {
 	xray.DrawText("Controls:", 20, 20, 20, xray.PURPLE)
 	xray.DrawText("- SPACE to generate bodies", 40, 40, 20, xray.LIGHTGRAY)
+	xray.DrawText("- R to reset camera", 40, 60, 20, xray.LIGHTGRAY)
 	xray.DrawFPS(SCREEN_SPACE_ORIGIN_X, SCREEN_SPACE_ORIGIN_Y)
 }
