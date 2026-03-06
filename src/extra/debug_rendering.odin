@@ -94,12 +94,15 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 	}}
 
 hex_2_rgb :: proc(hex: b2.HexColor) -> xray.Color {
-	return xray.GetColor(cast(u32)(hex))
+	// does not work on ARM - little-endian
+	//color := transmute([4]u8)(hex)
+	//return {color[1], color[2], color[3], 255}
+	// << 8 always means multiply by 256
+	return xray.GetColor(transmute(u32)(hex) << 8 | 0xFF)
 }
 
 @(test)
 testing_hex_2_rgb :: proc(t: ^testing.T) {
-	hex := b2.HexColor.Green
-	color := xray.Color{0, 128, 0, 255}
-	testing.expect_value(t, hex_2_rgb(hex), color)
+	testing.expect_value(t, hex_2_rgb(b2.HexColor.Green), xray.Color{0, 128, 0, 255})
+	testing.expect_value(t, hex_2_rgb(b2.HexColor.Red), xray.Color{255, 0, 0, 255})
 }
