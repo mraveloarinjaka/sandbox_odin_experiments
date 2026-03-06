@@ -20,7 +20,12 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 		) {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
-			log.debug("drawing polygon")
+			log.debugf("drawing polygon %v", vertices)
+			for idx in 0 ..< vertexCount {
+				start := vertices[idx]
+				end := vertices[(idx + 1) % vertexCount]
+				xray.DrawLineV(start, end, hex_2_rgb(color))
+			}
 		},
 		DrawSolidPolygonFcn = proc "c" (
 			transform: b2.Transform,
@@ -72,6 +77,7 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
 			log.debugf("drawing segment from %v to %v", p1, p2)
+			xray.DrawLineV(p1, p2, hex_2_rgb(color))
 		},
 		DrawTransformFcn = proc "c" (transform: b2.Transform, ctx: rawptr) {
 			data := cast(^DebugRenderData)(ctx)
@@ -82,11 +88,13 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
 			log.debugf("drawing point %v", p)
+			xray.DrawPixelV(p, hex_2_rgb(color))
 		},
 		DrawStringFcn = proc "c" (p: b2.Vec2, s: cstring, color: b2.HexColor, ctx: rawptr) {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
-			log.debugf("drawing string %v at %v", s, p)
+			log.debugf("drawing string %s at %v", s, p)
+			//xray.DrawTextEx(xray.GetFontDefault(), s, p, 1, 1, hex_2_rgb(color))
 		},
 	}}
 
