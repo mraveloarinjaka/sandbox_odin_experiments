@@ -67,14 +67,14 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 		) {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
-			log.debugf("drawing capsule with radius %v", radius)
+			log.debugf("drawing capsule from %v to %v with radius %v", p1, p2, radius)
 			xray.DrawCircleV(toSceneCoordinates(p1), radius, hex_2_rgb(color))
 			xray.DrawCircleV(toSceneCoordinates(p2), radius, hex_2_rgb(color))
 		},
 		DrawSegmentFcn = proc "c" (p1, p2: b2.Vec2, color: b2.HexColor, ctx: rawptr) {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
-			log.debugf("drawing segement from %v to %v", p1, p2)
+			log.debugf("drawing segment from %v to %v", p1, p2)
 		},
 		DrawTransformFcn = proc "c" (transform: b2.Transform, ctx: rawptr) {
 			data := cast(^DebugRenderData)(ctx)
