@@ -34,10 +34,8 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 			context = data.ctx
 			fmt.printfln("drawing solid polygon %v", vertices)
 			for idx in 0 ..< vertexCount {
-				start := toSceneCoordinates(b2.TransformPoint(transform, vertices[idx]))
-				end := toSceneCoordinates(
-					b2.TransformPoint(transform, vertices[(idx + 1) % vertexCount]),
-				)
+				start := b2.TransformPoint(transform, vertices[idx])
+				end := b2.TransformPoint(transform, vertices[(idx + 1) % vertexCount])
 				xray.DrawLineV(start, end, hex_2_rgb(color))
 			}
 		},
@@ -45,7 +43,7 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
 			fmt.println("drawing circle")
-			xray.DrawCircleV(toSceneCoordinates(center), radius, hex_2_rgb(color))
+			xray.DrawCircleV(center, radius, hex_2_rgb(color))
 		},
 		DrawSolidCircleFcn = proc "c" (
 			transform: b2.Transform,
@@ -56,8 +54,7 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
 			log.debug("drawing solid circle")
-			center := toSceneCoordinates(transform.p)
-			xray.DrawCircleV(center, radius, hex_2_rgb(color))
+			xray.DrawCircleV(transform.p, radius, hex_2_rgb(color))
 		},
 		DrawSolidCapsuleFcn = proc "c" (
 			p1, p2: b2.Vec2,
@@ -68,8 +65,8 @@ makeDebugDrawer :: proc(renderData: ^DebugRenderData) -> b2.DebugDraw {
 			data := cast(^DebugRenderData)(ctx)
 			context = data.ctx
 			log.debugf("drawing capsule from %v to %v with radius %v", p1, p2, radius)
-			xray.DrawCircleLinesV(toSceneCoordinates(p1), radius, hex_2_rgb(color))
-			xray.DrawCircleLinesV(toSceneCoordinates(p2), radius, hex_2_rgb(color))
+			xray.DrawCircleLinesV(p1, radius, hex_2_rgb(color))
+			xray.DrawCircleLinesV(p2, radius, hex_2_rgb(color))
 		},
 		DrawSegmentFcn = proc "c" (p1, p2: b2.Vec2, color: b2.HexColor, ctx: rawptr) {
 			data := cast(^DebugRenderData)(ctx)
