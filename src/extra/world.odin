@@ -80,7 +80,7 @@ createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2) -> (body: Box) {
 		b2.CreateCapsuleShape(
 			body.body_id,
 			body_shape,
-			b2.Capsule{{0, 0}, {1, 0}, 1},
+			b2.Capsule{{-1, 0}, {1, 0}, 1},
 		),
 	)
 
