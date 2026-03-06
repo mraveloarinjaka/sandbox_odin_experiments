@@ -7,9 +7,17 @@ import "vendor:raylib/rlgl"
 import "base:runtime"
 import "core:fmt"
 import "core:log"
+import "core:math"
 
 SCREEN_SPACE_ORIGIN_X :: WINDOW_WIDTH / 2
 SCREEN_SPACE_ORIGIN_Y :: (WINDOW_HEIGHT - 20)
+
+SCREEN_CORNERS: [4]xray.Vector2 = {
+	{0, 0}, //top left
+	{WINDOW_WIDTH, 0}, //top right
+	{WINDOW_WIDTH, WINDOW_HEIGHT}, //bottom right
+	{0, WINDOW_HEIGHT}, //bottom left
+}
 
 Camera :: struct {
 	offset_x: int,
@@ -23,9 +31,16 @@ DebugRenderData :: struct {
 	ctx:    runtime.Context,
 }
 
-toSceneCoordinates :: proc "contextless" (coord: b2.Vec2) -> (result: xray.Vector2) {
-	result.x = coord.x
-	result.y = coord.y
+getWorldAABB :: proc(camera: xray.Camera2D) -> (aabbMin, aabbMax: b2.Vec2) {
+	aabbMin = b2.Vec2{math.F32_MAX, math.F32_MAX}
+	aabbMax = b2.Vec2{-math.F32_MAX, -math.F32_MAX}
+	for i in 0 ..< 4 {
+		w := xray.GetScreenToWorld2D(SCREEN_CORNERS[i], camera)
+		aabbMin.x = math.min(aabbMin.x, w.x)
+		aabbMin.y = math.min(aabbMin.y, -w.y)
+		aabbMax.x = math.max(aabbMax.x, w.x)
+		aabbMax.y = math.max(aabbMax.y, -w.y)
+	}
 	return
 }
 
@@ -80,6 +95,15 @@ render :: proc(world: ^World) {
 
 				debugRenderData.ctx = context
 				debug := makeDebugDrawer(&debugRenderData)
+
+				aabbMin, aabbMax := getWorldAABB(camera)
+				log.debugf("min %v - max %v", aabbMin, aabbMax)
+				debug.drawingBounds = {
+					lowerBound = aabbMin,
+					upperBound = aabbMax,
+				}
+				debug.useDrawingBounds = true
+
 				b2.World_Draw(world.world_id, &debug)
 			}
 			xray.DrawCircle(0, 0, .5, xray.WHITE)
