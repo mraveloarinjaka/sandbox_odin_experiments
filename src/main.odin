@@ -1,14 +1,14 @@
-package main
+package entry_point
 
 import "core:fmt"
 import "core:log"
 
-import "extra"
+import "sim"
 
 main :: proc() {
 	context.logger = log.create_console_logger(log.Level.Debug)
 	log.debug("hello odin world!")
-	world := extra.createWorld()
-	defer {extra.releaseWorld(world)}
-	extra.render(&world)
+	world := sim.createWorld()
+	defer {sim.releaseWorld(world)}
+	sim.render(&world)
 }

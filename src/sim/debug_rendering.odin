@@ -1,4 +1,4 @@
-package core
+package sim
 
 import b2 "vendor:box2d"
 import xray "vendor:raylib"
