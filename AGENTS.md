@@ -28,16 +28,13 @@ Launches the physics sandbox window.
 
 ### Run All Tests
 ```bash
-odin test src/
+odin test src/ -all-packages
 ```
 
 ### Run Single Test
+Rebuild and run just the test file:
 ```bash
-odin test src/ -define:ODIN_TEST_THREADS=1 | grep -A 20 "testing_hex_2_rgb"
-```
-Or rebuild and run just the test file:
-```bash
-odin test src/extra/debug_rendering.odin
+odin test src/sim/debug_rendering.odin
 ```
 
 ### Clean
@@ -52,14 +49,14 @@ rm -f src.bin
 ```
 src/
   main.odin                    # Entry point (14 lines) - wires world creation and render loop
-  extra/
+  sim/
     constants.odin            # Compile-time constants (9 lines)
     world.odin                # Physics domain model & lifecycle (105 lines)
     rendering.odin            # Render loop, camera, coordinate mapping (121 lines)
     debug_rendering.odin      # Box2D debug callbacks, color utilities (113 lines)
 ```
 
-**Package naming:** All files in `extra/` declare `package core` (the logical package name).
+**Package naming:** All files in `sim/` declare `package core` (the logical package name).
 
 ---
 
@@ -83,18 +80,15 @@ import "core:testing"
 
 **Local imports** are unaliased:
 ```odin
-import "extra"
+import "sim"
 ```
 
 **Ordering:** Group imports (vendor, core, local) with blank lines between; alphabetize within groups.
 
 ### Formatting
 
-- **Indentation:** Tabs (not spaces)
-- **No semicolons:** Odin does not use them
-- **Trailing commas:** Use in multi-line struct literals and function calls
-- **Braces:** Opening brace on same line; closing brace on new line
-- **Line length:** Keep readable; break long calls across multiple lines with indentation
+- **Formatter:** Use `odinfmt` exclusively for Odin code formatting.
+- **Rule source:** Treat `odinfmt` output as the single source of truth; do not apply manual formatting rules that conflict with it.
 
 ### Naming Conventions
 
@@ -103,7 +97,7 @@ import "extra"
 - **Struct types:** `PascalCase` (e.g., `World`, `DebugRenderData`)
 - **Constants:** `SCREAMING_SNAKE_CASE` (e.g., `PIXELS_PER_METER`, `FPS`)
 - **Variables/parameters:** `camelCase` for loop/param variables; `snake_case` for struct fields and definitions
-- **Packages:** `core` for logical package name (convention in `extra/`)
+- **Packages:** `core` for logical package name (convention in `sim/`)
 
 ### Type Usage
 
@@ -127,7 +121,7 @@ import "extra"
 
 **Resource cleanup:** Use `defer` consistently:
 ```odin
-defer {extra.releaseWorld(world)}
+defer {sim.releaseWorld(world)}
 defer xray.CloseWindow()
 ```
 
@@ -142,7 +136,7 @@ defer xray.CloseWindow()
 
 Odin uses **capitalization-based visibility**: uppercase = exported. This codebase uses **all lowercase-initial names**, making all procedures **package-private** by default. Cross-package calls use fully qualified names:
 ```odin
-extra.createWorld()
+sim.createWorld()
 ```
 
 ### Framework-Specific Patterns
@@ -171,18 +165,12 @@ DrawPolygonFcn = proc "c" (vertices: [^]b2.Vec2, ..., ctx: rawptr) {
 }
 ```
 
-#### SOA Dynamic Arrays
-This codebase uses Structure-of-Arrays layout for performance:
-```odin
-boxes: #soa[dynamic]Box
-append_soa(&world.boxes, createBody(...))
-```
-
 ### Logging
 
 Use `core:log` for all output (no `fmt.println`):
 ```odin
-context.logger = log.create_console_logger(log.Level.Debug)
+import "core:log"
+
 log.debug("message")
 log.debugf("formatted %v", value)
 ```
@@ -226,8 +214,8 @@ Format: `[TYPE] (scope): description`
 ## Development Workflow
 
 1. **Read source files** to understand the current state and any existing patterns
-2. **Run tests** before making changes: `odin test src/`
-3. **Build and test** after changes: `odin build src/ && odin test src/`
+2. **Run tests** before making changes: `odin test src/ -all-packages`
+3. **Build and test** after changes: `odin build src/ && odin test src/ -all-packages`
 4. **Follow naming & formatting conventions** (see above)
 5. **Add tests** for new utility functions using `@(test)` attribute
 6. **Use `defer`** for all resource cleanup
