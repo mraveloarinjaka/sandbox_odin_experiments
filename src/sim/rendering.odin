@@ -56,6 +56,7 @@ render :: proc(world: ^World) {
 	camera.zoom = PIXELS_PER_METER
 
 	debugRenderData := DebugRenderData{}
+	useDebugRendering := true
 
 	xray.SetTargetFPS(FPS)
 
@@ -63,6 +64,9 @@ render :: proc(world: ^World) {
 		free_all(context.temp_allocator)
 		if xray.IsKeyDown(xray.KeyboardKey.SPACE) {
 			generateMoreBodies(world)
+		}
+		if xray.IsKeyPressed(xray.KeyboardKey.D) {
+			useDebugRendering = !useDebugRendering
 		}
 		if xray.IsKeyDown(xray.KeyboardKey.K) {
 			camera.target.y -= .5
@@ -93,29 +97,39 @@ render :: proc(world: ^World) {
 				defer {rlgl.PopMatrix()}
 				rlgl.Scalef(1, -1, 1)
 
-				debugRenderData.ctx = context
-				debug := makeDebugDrawer(&debugRenderData)
+				if useDebugRendering {
+					debugRenderData.ctx = context
+					debug := makeDebugDrawer(&debugRenderData)
 
-				aabbMin, aabbMax := getWorldAABB(camera)
-				log.debugf("min %v - max %v", aabbMin, aabbMax)
-				debug.drawingBounds = {
-					lowerBound = aabbMin,
-					upperBound = aabbMax,
+					aabbMin, aabbMax := getWorldAABB(camera)
+					log.debugf("min %v - max %v", aabbMin, aabbMax)
+					debug.drawingBounds = {
+						lowerBound = aabbMin,
+						upperBound = aabbMax,
+					}
+					debug.useDrawingBounds = true
+
+					b2.World_Draw(world.world_id, &debug)
+				} else {
+					renderWorld(world.world_id)
 				}
-				debug.useDrawingBounds = true
-
-				b2.World_Draw(world.world_id, &debug)
 			}
 			xray.DrawCircle(0, 0, .5, xray.WHITE)
 			xray.DrawTextEx(xray.GetFontDefault(), "Origin", {0, 0.5}, 1, 1, xray.RAYWHITE)
 		}
-		drawControls(camera)
+		drawControls(camera, useDebugRendering)
 	}
 }
 
-drawControls :: proc(camera: xray.Camera2D) {
+drawControls :: proc(camera: xray.Camera2D, useDebugRendering: bool) {
 	xray.DrawText("Controls:", 20, 20, 20, xray.PURPLE)
 	xray.DrawText("- SPACE to generate bodies", 40, 40, 20, xray.LIGHTGRAY)
 	xray.DrawText("- R to reset camera", 40, 60, 20, xray.LIGHTGRAY)
+	xray.DrawText("- D to toggle debug/custom rendering", 40, 80, 20, xray.LIGHTGRAY)
+	
+	modeText := "Debug" if useDebugRendering else "Custom"
+	modeColor := xray.GREEN if useDebugRendering else xray.BLUE
+	xray.DrawText(fmt.ctprintf("Rendering: %s", modeText), 20, 100, 20, modeColor)
+	
 	xray.DrawFPS(SCREEN_SPACE_ORIGIN_X, SCREEN_SPACE_ORIGIN_Y)
 }
