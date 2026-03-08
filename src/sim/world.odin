@@ -13,8 +13,7 @@ NB_BODIES :: 10
 World :: struct {
 	world_id:  b2.WorldId,
 	ground_id: b2.BodyId,
-	//bodies:    [dynamic]Body,
-	boxes:     #soa[dynamic]Box,
+	bodies:    [dynamic]Body,
 }
 
 createWorld :: proc() -> (world: World) {
@@ -24,17 +23,17 @@ createWorld :: proc() -> (world: World) {
 	world.ground_id = createGround(world.world_id)
 
 	for body_idx in 0 ..< NB_BODIES {
-		append_soa(&world.boxes, createBody(world.world_id, b2.Vec2{0, 10}))
+		append(&world.bodies, createBody(world.world_id, b2.Vec2{0, 10}))
 	}
 
 	return world
 }
 
 releaseWorld :: proc(world: World) {
-	for body in world.boxes {
+	for body in world.bodies {
 		releaseBody(body)
 	}
-	delete(world.boxes)
+	delete(world.bodies)
 	b2.DestroyBody(world.ground_id)
 	b2.DestroyWorld(world.world_id)
 }
@@ -55,12 +54,12 @@ createGround :: proc(world_id: b2.WorldId) -> b2.BodyId {
 	return ground_id
 }
 
-Box :: struct {
+Body :: struct {
 	body_id:   b2.BodyId,
 	shape_ids: [dynamic]b2.ShapeId,
 }
 
-createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2) -> (body: Box) {
+createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2) -> (body: Body) {
 	body_def := b2.DefaultBodyDef()
 	body_def.type = b2.BodyType.dynamicBody
 	body_def.position = b2.Vec2{pos.x, pos.y}
@@ -87,11 +86,12 @@ createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2) -> (body: Box) {
 	return body
 }
 
-releaseBody :: proc(body: Box) {
+releaseBody :: proc(body: Body) {
 	log.debugf("releasing body %v", body)
-	for shape_id in body.shape_ids {
-		b2.DestroyShape(shape_id, true)
-	}
+	// destroying the body destroys all shape associated
+	//for shape_id in body.shape_ids {
+	//   b2.DestroyShape(shape_id, true)
+	//}
 	delete(body.shape_ids)
 	b2.DestroyBody(body.body_id)
 }
@@ -101,5 +101,5 @@ tick :: proc(world: World) {
 }
 
 generateMoreBodies :: proc(world: ^World) {
-	append_soa(&world.boxes, createBody(world.world_id, b2.Vec2{0, 10}))
+	append(&world.bodies, createBody(world.world_id, b2.Vec2{0, 10}))
 }

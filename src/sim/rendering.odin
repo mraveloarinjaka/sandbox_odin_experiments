@@ -111,7 +111,7 @@ render :: proc(world: ^World) {
 
 					b2.World_Draw(world.world_id, &debug)
 				} else {
-					renderWorld(world.world_id)
+					renderWorld(world)
 				}
 			}
 			xray.DrawCircle(0, 0, .5, xray.WHITE)
@@ -126,10 +126,10 @@ drawControls :: proc(camera: xray.Camera2D, useDebugRendering: bool) {
 	xray.DrawText("- SPACE to generate bodies", 40, 40, 20, xray.LIGHTGRAY)
 	xray.DrawText("- R to reset camera", 40, 60, 20, xray.LIGHTGRAY)
 	xray.DrawText("- D to toggle debug/custom rendering", 40, 80, 20, xray.LIGHTGRAY)
-	
+
 	modeText := "Debug" if useDebugRendering else "Custom"
 	modeColor := xray.GREEN if useDebugRendering else xray.BLUE
 	xray.DrawText(fmt.ctprintf("Rendering: %s", modeText), 20, 100, 20, modeColor)
-	
+
 	xray.DrawFPS(SCREEN_SPACE_ORIGIN_X, SCREEN_SPACE_ORIGIN_Y)
 }
