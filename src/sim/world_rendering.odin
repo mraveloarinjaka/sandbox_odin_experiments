@@ -3,29 +3,12 @@ package sim
 import b2 "vendor:box2d"
 import xray "vendor:raylib"
 
-BODY_COLORS: [8]xray.Color = {
-	xray.RED,
-	xray.BLUE,
-	xray.GREEN,
-	xray.GOLD,
-	xray.PURPLE,
-	xray.ORANGE,
-	xray.SKYBLUE,
-	xray.RAYWHITE,
-}
-
 renderWorld :: proc(world: ^World) {
-	drawBody(world.ground_id, bodyColor(0))
+	drawBody(world.ground_id, hex_2_rgb(b2.HexColor.Gray))
 
-	color_idx := 1
 	for body in world.bodies {
-		drawBody(body.body_id, bodyColor(color_idx))
-		color_idx += 1
+		drawBody(body.body_id, hex_2_rgb(body.color))
 	}
-}
-
-bodyColor :: proc(index: int) -> xray.Color {
-	return BODY_COLORS[index % len(BODY_COLORS)]
 }
 
 drawBody :: proc(body_id: b2.BodyId, color: xray.Color) {

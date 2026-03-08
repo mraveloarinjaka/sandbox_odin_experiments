@@ -10,6 +10,17 @@ TIMESTEP :: 1.0 / FPS
 SUBSTEP :: 4
 NB_BODIES :: 10
 
+BODY_COLORS: [8]b2.HexColor = {
+	b2.HexColor.Red,
+	b2.HexColor.Blue,
+	b2.HexColor.Green,
+	b2.HexColor.Gold,
+	b2.HexColor.Purple,
+	b2.HexColor.Orange,
+	b2.HexColor.SkyBlue,
+	b2.HexColor.White,
+}
+
 World :: struct {
 	world_id:  b2.WorldId,
 	ground_id: b2.BodyId,
@@ -23,7 +34,7 @@ createWorld :: proc() -> (world: World) {
 	world.ground_id = createGround(world.world_id)
 
 	for body_idx in 0 ..< NB_BODIES {
-		append(&world.bodies, createBody(world.world_id, b2.Vec2{0, 10}))
+		append(&world.bodies, createBody(world.world_id, b2.Vec2{0, 10}, BODY_COLORS[body_idx % len(BODY_COLORS)]))
 	}
 
 	return world
@@ -57,13 +68,15 @@ createGround :: proc(world_id: b2.WorldId) -> b2.BodyId {
 Body :: struct {
 	body_id:   b2.BodyId,
 	shape_ids: [dynamic]b2.ShapeId,
+	color:     b2.HexColor,
 }
 
-createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2) -> (body: Body) {
+createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2, color: b2.HexColor) -> (body: Body) {
 	body_def := b2.DefaultBodyDef()
 	body_def.type = b2.BodyType.dynamicBody
 	body_def.position = b2.Vec2{pos.x, pos.y}
 	body.body_id = b2.CreateBody(world_id, body_def)
+	body.color = color
 
 	body_shape := b2.DefaultShapeDef()
 	body_shape.density = 1.0
@@ -101,5 +114,6 @@ tick :: proc(world: World) {
 }
 
 generateMoreBodies :: proc(world: ^World) {
-	append(&world.bodies, createBody(world.world_id, b2.Vec2{0, 10}))
+	color_idx := len(world.bodies) % len(BODY_COLORS)
+	append(&world.bodies, createBody(world.world_id, b2.Vec2{0, 10}, BODY_COLORS[color_idx]))
 }
