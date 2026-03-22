@@ -1,6 +1,5 @@
 package entry_point
 
-import "core:fmt"
 import "core:log"
 
 import "sim"
