@@ -2,8 +2,8 @@ package sim
 
 import b2 "vendor:box2d"
 
-import "core:fmt"
 import "core:log"
+import "core:math/rand"
 
 MAX_STEPS :: 120
 TIMESTEP :: 1.0 / FPS
@@ -27,6 +27,19 @@ World :: struct {
 	bodies:    [dynamic]Body,
 }
 
+initialPosition :: proc() -> (initial_position: b2.Vec2) {
+   randomAround :: proc(center, delta: int) -> f32 {                            
+      return cast(f32)(rand.int_max(delta * 2 + 1) - delta + center)            
+   }                                                                            
+	INITIAL_POS_X :: 0
+	INITIAL_POS_DX :: 5
+	initial_position.x = randomAround(INITIAL_POS_X, INITIAL_POS_DX)
+	INITIAL_POS_Y :: 10
+	INITIAL_POS_DY :: 5
+	initial_position.y = randomAround(INITIAL_POS_Y, INITIAL_POS_DY)
+	return
+}
+
 createWorld :: proc() -> (world: World) {
 	world_def := b2.DefaultWorldDef()
 	world_def.gravity = b2.Vec2{0, -10}
@@ -34,9 +47,15 @@ createWorld :: proc() -> (world: World) {
 	world.ground_id = createGround(world.world_id)
 
 	for body_idx in 0 ..< NB_BODIES {
-		append(&world.bodies, createBody(world.world_id, b2.Vec2{0, 10}, BODY_COLORS[body_idx % len(BODY_COLORS)]))
+		append(
+			&world.bodies,
+			createBody(
+				world.world_id,
+				initialPosition(),
+				BODY_COLORS[body_idx % len(BODY_COLORS)],
+			),
+		)
 	}
-
 	return world
 }
 
@@ -89,11 +108,7 @@ createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2, color: b2.HexColor) -> (b
 	append(&body.shape_ids, b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeSquare(1.25)))
 	append(
 		&body.shape_ids,
-		b2.CreateCapsuleShape(
-			body.body_id,
-			body_shape,
-			b2.Capsule{{-1, 0}, {1, 0}, 1},
-		),
+		b2.CreateCapsuleShape(body.body_id, body_shape, b2.Capsule{{-1, 0}, {1, 0}, 1}),
 	)
 
 	return body
@@ -115,5 +130,5 @@ tick :: proc(world: World) {
 
 generateMoreBodies :: proc(world: ^World) {
 	color_idx := len(world.bodies) % len(BODY_COLORS)
-	append(&world.bodies, createBody(world.world_id, b2.Vec2{0, 10}, BODY_COLORS[color_idx]))
+	append(&world.bodies, createBody(world.world_id, initialPosition(), BODY_COLORS[color_idx]))
 }
