@@ -3,22 +3,40 @@ package sim
 import b2 "vendor:box2d"
 import xray "vendor:raylib"
 
-renderWorld :: proc(world: ^World) {
-	drawBody(world.ground_id, hex_2_rgb(b2.HexColor.Gray))
+import "bodies"
 
+renderWorld :: proc(world: ^World) {
+	drawGround(world.ground_id, hex_2_rgb(b2.HexColor.Gray))
 	for body in world.bodies {
-		drawBody(body.body_id, hex_2_rgb(body.color))
+		drawBody(body)
 	}
 }
 
-drawBody :: proc(body_id: b2.BodyId, color: xray.Color) {
-	transform := b2.Body_GetTransform(body_id)
-	shape_count := b2.Body_GetShapeCount(body_id)
-	shape_ids := make([]b2.ShapeId, shape_count, context.temp_allocator)
-
-	_ = b2.Body_GetShapes(body_id, shape_ids)
+drawGround :: proc(ground_id: b2.BodyId, color: xray.Color) {
+	transform, shape_ids := extractBodyData(ground_id)
 	for shape_id in shape_ids {
 		drawShape(shape_id, transform, color)
+	}
+}
+
+extractBodyData :: proc(body_id: b2.BodyId, allocator := context.temp_allocator) -> (b2.Transform, []b2.ShapeId) {
+	transform := b2.Body_GetTransform(body_id)
+	shape_count := b2.Body_GetShapeCount(body_id)
+	shape_ids := make([]b2.ShapeId, shape_count, allocator)
+	return transform, b2.Body_GetShapes(body_id, shape_ids)
+}
+
+drawBody :: proc(body: Body) {
+	switch b in body {
+	case bodies.Capsule:
+		drawCapsule(b)
+	}
+}
+
+drawCapsule :: proc(capsule: bodies.Capsule) {
+	transform, shape_ids := extractBodyData(capsule.body_id)
+	for shape_id in shape_ids {
+		drawShape(shape_id, transform, hex_2_rgb(capsule.capsule_data.color))
 	}
 }
 

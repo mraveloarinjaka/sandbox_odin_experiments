@@ -2,8 +2,9 @@ package sim
 
 import b2 "vendor:box2d"
 
-import "core:log"
 import "core:math/rand"
+
+import "bodies"
 
 MAX_STEPS :: 120
 TIMESTEP :: 1.0 / FPS
@@ -27,10 +28,15 @@ World :: struct {
 	bodies:    [dynamic]Body,
 }
 
+Body :: union {
+	bodies.Capsule,
+}
+
+
 initialPosition :: proc() -> (initial_position: b2.Vec2) {
-   randomAround :: proc(center, delta: int) -> f32 {                            
-      return cast(f32)(rand.int_max(delta * 2 + 1) - delta + center)            
-   }                                                                            
+	randomAround :: proc(center, delta: int) -> f32 {
+		return cast(f32)(rand.int_max(delta * 2 + 1) - delta + center)
+	}
 	INITIAL_POS_X :: 0
 	INITIAL_POS_DX :: 5
 	initial_position.x = randomAround(INITIAL_POS_X, INITIAL_POS_DX)
@@ -49,7 +55,7 @@ createWorld :: proc() -> (world: World) {
 	for body_idx in 0 ..< NB_BODIES {
 		append(
 			&world.bodies,
-			createBody(
+			bodies.createCapsule(
 				world.world_id,
 				initialPosition(),
 				BODY_COLORS[body_idx % len(BODY_COLORS)],
@@ -60,12 +66,19 @@ createWorld :: proc() -> (world: World) {
 }
 
 releaseWorld :: proc(world: World) {
-	for body in world.bodies {
-		releaseBody(body)
+	for &body in world.bodies {
+		releaseBody(&body)
 	}
 	delete(world.bodies)
 	b2.DestroyBody(world.ground_id)
 	b2.DestroyWorld(world.world_id)
+}
+
+releaseBody :: proc(body: ^Body) {
+	switch &b in body {
+	case bodies.Capsule:
+		bodies.releaseCapsule(&b)
+	}
 }
 
 GROUND_HALF_WIDTH :: 50
@@ -84,51 +97,14 @@ createGround :: proc(world_id: b2.WorldId) -> b2.BodyId {
 	return ground_id
 }
 
-Body :: struct {
-	body_id:   b2.BodyId,
-	shape_ids: [dynamic]b2.ShapeId,
-	color:     b2.HexColor,
-}
-
-createBody :: proc(world_id: b2.WorldId, pos: b2.Vec2, color: b2.HexColor) -> (body: Body) {
-	body_def := b2.DefaultBodyDef()
-	body_def.type = b2.BodyType.dynamicBody
-	body_def.position = b2.Vec2{pos.x, pos.y}
-	body.body_id = b2.CreateBody(world_id, body_def)
-	body.color = color
-
-	body_shape := b2.DefaultShapeDef()
-	body_shape.density = 1.0
-
-	body_surface := b2.DefaultSurfaceMaterial()
-	body_surface.friction = 0.3
-	body_shape.material = body_surface
-
-	append(&body.shape_ids, b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeSquare(.75)))
-	append(&body.shape_ids, b2.CreatePolygonShape(body.body_id, body_shape, b2.MakeSquare(1.25)))
-	append(
-		&body.shape_ids,
-		b2.CreateCapsuleShape(body.body_id, body_shape, b2.Capsule{{-1, 0}, {1, 0}, 1}),
-	)
-
-	return body
-}
-
-releaseBody :: proc(body: Body) {
-	log.debugf("releasing body %v", body)
-	// destroying the body destroys all shape associated
-	//for shape_id in body.shape_ids {
-	//   b2.DestroyShape(shape_id, true)
-	//}
-	delete(body.shape_ids)
-	b2.DestroyBody(body.body_id)
-}
-
 tick :: proc(world: World) {
 	b2.World_Step(world.world_id, TIMESTEP, SUBSTEP)
 }
 
 generateMoreBodies :: proc(world: ^World) {
 	color_idx := len(world.bodies) % len(BODY_COLORS)
-	append(&world.bodies, createBody(world.world_id, initialPosition(), BODY_COLORS[color_idx]))
+	append(
+		&world.bodies,
+		bodies.createCapsule(world.world_id, initialPosition(), BODY_COLORS[color_idx]),
+	)
 }
